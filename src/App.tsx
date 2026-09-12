@@ -76,6 +76,10 @@ export default function App() {
     window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash);
   }, []);
   useEffect(() => { refreshConfig(); }, []);
+  useEffect(() => {
+    if (page !== 'ledger' || !workspaceId) return;
+    loadLedger(workspaceId).catch(e => setError(cleanError(e)));
+  }, [page, workspaceId]);
 
   async function refreshConfig() {
     try { setConfig(await getConfig()); } catch (e) { setError(cleanError(e)); }
