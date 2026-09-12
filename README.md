@@ -34,6 +34,10 @@ npm run verify
 npm run build
 ```
 
-`npm run verify` checks the frozen contract hash, address configuration, and public-package hygiene.
+`npm run verify` checks the frozen contract hash and address configuration, runs the tracked Python behavioral state-machine suite against the exact frozen contract source, then checks public-package hygiene. The behavioral verifier covers authorization, fail-closed nondeterministic failures, cache/no-reroll behavior, cross-workspace isolation, partial acceptance, final dual-acceptance activation, terminal replay blocking, and withdrawal safety.
 
-See `TESTING.md` for the runtime evidence behind the frozen contract.
+See `TESTING.md` for the executable test inventory and recorded finalized StudioNet evidence behind the frozen contract.
+
+
+### Cross-platform source-parity note
+`npm run verify` validates the frozen TwinCharter contract SHA across Windows/Linux checkouts. CRLF is canonicalized to LF only for this SHA comparison; any non-line-ending source change still fails verification. `.gitattributes` pins the production contract to LF.

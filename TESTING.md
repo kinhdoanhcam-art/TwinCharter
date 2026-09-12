@@ -34,8 +34,25 @@ After successor B accepted the same split, finalized state showed:
 ### Cross-workspace cache isolation — PASS
 Workspace #2 used the same parent charter and exact GAP candidate already classified in Workspace #1. Its first split reported `used_cache=false` and `semantic_eval_count=1`, demonstrating workspace-scoped cache isolation.
 
-## Local R2 gates
+## Tracked behavioral verifier
 
-The exact R2 candidate passed the local pre-deploy gates used for this project: Python compile, AST/policy checks, prompt-fence regression, contract regression suite, cross-workspace cache isolation checks, semantic evaluation cap checks, malformed/provider/non-convergence no-write checks, bounds/pagination checks, and public package hygiene.
+The repository now includes `tests/test_twincharter_behavior.py`, executed automatically by `npm run verify`. The tests load the exact frozen `contracts/TwinCharter.py` source under a minimal deterministic GenLayer runtime stub and exercise the contract methods directly. The harness controls sender identity and nondeterministic validator responses while leaving the production contract bytes unchanged.
 
-No claim is made for tools that were not actually run against this exact source.
+Tracked state-machine gates include:
+
+- authorization: outsider propose/accept/withdraw attempts fail before consequential state changes;
+- nondeterministic provider failure: semantic failure leaves split state, counters, and cache unchanged;
+- malformed semantic output: fail-closed with no split/cache write;
+- validator disagreement/non-convergence: no consequential state or cache write;
+- same-workspace cache/no-reroll: exact GAP retry uses cache, does not call nondeterminism again, and does not increment `semantic_eval_count`;
+- A/B input-order normalization: swapping the same successor+charter assignments hits the same cache entry;
+- cross-workspace isolation: an identical candidate in another workspace requires a fresh semantic evaluation;
+- partial acceptance: one successor acceptance leaves the parent `ACTIVE`, epoch `0`, and creates zero children;
+- final activation: second successor acceptance closes the parent, increments epoch once, creates exactly two correctly bound children, and blocks terminal replay/bypass paths;
+- withdrawal: a pending covering split can be withdrawn only by the current responsible party without moving responsibility.
+
+These executable local tests complement the recorded finalized StudioNet evidence above. They do not claim to replace network-level consensus/runtime evidence.
+
+## Verification scope
+
+`npm run verify` is the repository-tracked local gate for this submission. It verifies source parity and address configuration, runs the executable state-machine tests above, and performs public-package hygiene checks. The recorded StudioNet gates remain network evidence; the local stub suite is complementary and is not presented as a substitute for live GenLayer consensus execution.
